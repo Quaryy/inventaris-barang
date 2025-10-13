@@ -1,3 +1,13 @@
+<!-- Tampilan filter urutan (versi simpel & rapi, sama seperti di barang) -->
+<div class="d-flex justify-content-end mb-3">
+    <form action="{{ route('peminjaman.index') }}" method="GET" class="d-flex align-items-center gap-2">
+        <select name="sort" id="sort" class="form-select form-select-sm w-auto shadow-sm border-0 bg-light fw-semibold" onchange="this.form.submit()">
+            <option value="desc" {{ request('sort') == 'desc' ? 'selected' : '' }}> Peminjaman Terbaru</option>
+            <option value="asc" {{ request('sort') == 'asc' ? 'selected' : '' }}> Peminjaman Lama</option>
+        </select>
+    </form>
+</div>
+
 <x-table-list>
     <x-slot name="header">
         <tr>
@@ -26,29 +36,25 @@
                 </span>
             </td>
             <td class="text-end">
-                <x-tombol-aksi href="{{ route('peminjaman.show',$p->id) }}" type="show" />
-                <x-tombol-aksi href="{{ route('peminjaman.edit',$p->id) }}" type="edit" />
+                <x-tombol-aksi href="{{ route('peminjaman.show', $p->id) }}" type="show" />
+                <x-tombol-aksi href="{{ route('peminjaman.edit', $p->id) }}" type="edit" />
 
-                @if($p->status == 'dipinjam')
-                    {{-- Tombol buka modal --}}
+                @if ($p->status == 'dipinjam')
+                    <!-- Tombol buka modal -->
                     <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalKembalikan{{ $p->id }}">
                         <i class="bi bi-arrow-return-left"></i>
                     </button>
 
-                    {{-- Modal konfirmasi --}}
+                    <!-- Modal konfirmasi -->
                     <div class="modal fade" id="modalKembalikan{{ $p->id }}" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title">
-                                        Konfirmasi Pengembalian
-                                    </h5>
+                                    <h5 class="modal-title">Konfirmasi Pengembalian</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
-                                <div class="modal-body text-start"> {{-- 🔹 isi modal rata kiri --}}
-                                    <p>
-                                        Apakah Anda yakin ingin mengembalikan barang ini?
-                                    </p>
+                                <div class="modal-body text-start">
+                                    <p>Apakah Anda yakin ingin mengembalikan barang ini?</p>
                                     <ul class="mb-0">
                                         <li><strong>Peminjam:</strong> {{ $p->nama_peminjam }}</li>
                                         <li><strong>Barang:</strong> {{ $p->barang->nama_barang }}</li>
@@ -59,7 +65,7 @@
                                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
                                         Batal
                                     </button>
-                                    <form action="{{ route('peminjaman.update',$p->id) }}" method="POST" class="d-inline">
+                                    <form action="{{ route('peminjaman.update', $p->id) }}" method="POST" class="d-inline">
                                         @csrf @method('PUT')
                                         <button name="kembalikan" class="btn btn-success btn-sm">
                                             <i class="bi bi-check-circle"></i> Ya, Kembalikan
@@ -72,7 +78,7 @@
                 @endif
 
                 <x-tombol-aksi 
-                    href="{{ route('peminjaman.destroy',$p->id) }}" 
+                    href="{{ route('peminjaman.destroy', $p->id) }}" 
                     type="delete" 
                 />
             </td>
@@ -88,7 +94,7 @@
     @endforelse
 </x-table-list>
 
-{{-- Pagination --}}
+<!-- Pagination -->
 <div class="mt-3">
     {{ $peminjamans->links() }}
 </div>

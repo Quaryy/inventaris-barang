@@ -30,13 +30,14 @@ class BarangController extends Controller implements HasMiddleware
     public function index(Request $request)
     {
         $search = $request->search;
+        $sort = $request->get('sort', 'desc'); // default: urut terbaru
 
         $barangs = Barang::with(['kategori', 'lokasi'])
             ->when($search, function ($query, $search) {
                 $query->where('nama_barang', 'like', '%' . $search . '%')
                       ->orWhere('kode_barang', 'like', '%' . $search . '%');
             })
-            ->latest()
+            ->orderBy('created_at', $sort)
             ->paginate(10)
             ->withQueryString();
 

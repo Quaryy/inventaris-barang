@@ -1,3 +1,13 @@
+<!-- Tampilan filter urutan (versi simpel & rapi) -->
+<div class="d-flex justify-content-end mb-3">
+    <form action="{{ route('barang.index') }}" method="GET" class="d-flex align-items-center gap-2">
+        <select name="sort" id="sort" class="form-select form-select-sm w-auto shadow-sm border-0 bg-light fw-semibold" onchange="this.form.submit()">
+            <option value="desc" {{ request('sort') == 'desc' ? 'selected' : '' }}>🔽 Barang Terbaru</option>
+            <option value="asc" {{ request('sort') == 'asc' ? 'selected' : '' }}>🔼 Barang Lama</option>
+        </select>
+    </form>
+</div>
+
 <x-table-list>
     <x-slot name="header">
         <tr>
@@ -22,7 +32,7 @@
             <td>{{ $barang->jumlah }} {{ $barang->satuan }}</td>
             <td>
                 @php
-                    $badgeClass = 'bg-info'; // default
+                    $badgeClass = 'bg-info';
                     if ($barang->kondisi == 'Rusak Ringan') {
                         $badgeClass = 'bg-warning text-dark';
                     } elseif ($barang->kondisi == 'Rusak Berat') {
@@ -57,3 +67,8 @@
         </tr>
     @endforelse
 </x-table-list>
+
+<!-- Pagination -->
+<div class="mt-3">
+    {{ $barangs->links() }}
+</div>

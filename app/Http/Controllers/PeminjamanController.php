@@ -21,8 +21,12 @@ class PeminjamanController extends Controller
                   });
         }
 
-        $peminjamans = $query->latest()->paginate(10);
-        $peminjamans->appends($request->only('search')); // pagination tetap bawa keyword
+        // 🔽 Fitur urutkan berdasarkan terbaru / terlama
+        $sortOrder = $request->get('sort', 'desc'); // default = terbaru
+        $query->orderBy('created_at', $sortOrder);
+
+        $peminjamans = $query->paginate(10);
+        $peminjamans->appends($request->only('search', 'sort')); // agar pagination tetap bawa parameter
 
         return view('peminjaman.index', compact('peminjamans'));
     }
@@ -159,12 +163,11 @@ class PeminjamanController extends Controller
     }
 
     public function laporan()
-{
-    $peminjamans = Peminjaman::with('barang')->get();
-    $title = "Laporan Peminjaman";
-    $date = now()->format('d-m-Y');
+    {
+        $peminjamans = Peminjaman::with('barang')->get();
+        $title = "Laporan Peminjaman";
+        $date = now()->format('d-m-Y');
 
-    return view('peminjaman.laporan', compact('peminjamans','title','date'));
-}
-
+        return view('peminjaman.laporan', compact('peminjamans', 'title', 'date'));
+    }
 }
