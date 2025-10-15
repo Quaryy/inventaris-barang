@@ -33,4 +33,8 @@
             </span>
         </td>
     </tr>
+    <tr>
+        <th>Sumber Dana</th>
+        <td>: {{ $peminjaman->barang->sumber_dana ?? '-' }}</td>
+    </tr>
 </table>

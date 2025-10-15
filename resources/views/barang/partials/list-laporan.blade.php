@@ -8,6 +8,7 @@
             <th>Lokasi</th>
             <th>Jumlah</th>
             <th>Kondisi</th>
+            <th>Sumber Dana</th>
             <th>Tgl. Pengadaan</th>
         </tr>
     </thead>
@@ -22,11 +23,18 @@
                 <td>{{ $barang->lokasi->nama_lokasi }}</td>
                 <td>{{ $barang->jumlah }} {{ $barang->satuan }}</td>
                 <td>{{ $barang->kondisi }}</td>
+                <td>
+                    @if($barang->sumber_dana)
+                        {{ $barang->sumber_dana }}
+                    @else
+                        <span style="color: #888;">-</span>
+                    @endif
+                </td>
                 <td>{{ date('d-m-Y', strtotime($barang->tanggal_pengadaan)) }}</td>
             </tr>
         @empty
             <tr>
-                <td colspan="8" style="text-align: center;">Tidak ada data.</td>
+                <td colspan="9" style="text-align: center;">Tidak ada data.</td>
             </tr>
         @endforelse
     </tbody>

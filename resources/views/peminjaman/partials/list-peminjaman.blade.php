@@ -94,7 +94,3 @@
     @endforelse
 </x-table-list>
 
-<!-- Pagination -->
-<div class="mt-3">
-    {{ $peminjamans->links() }}
-</div>

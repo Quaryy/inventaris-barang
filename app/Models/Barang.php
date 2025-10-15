@@ -22,4 +22,18 @@ class Barang extends Model
     {
         return $this->belongsTo(Lokasi::class, 'lokasi_id');
     }
+
+    protected $fillable = [
+    'kode_barang',
+    'nama_barang',
+    'kategori_id',
+    'lokasi_id',
+    'jumlah',
+    'satuan',
+    'kondisi',
+    'tanggal_pengadaan',
+    'gambar',
+    'sumber_dana', // <--- tambahkan ini
+];
+
 }

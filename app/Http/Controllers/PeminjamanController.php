@@ -10,24 +10,26 @@ class PeminjamanController extends Controller
 {
     public function index(Request $request)
     {
+        // 🔍 Query dasar dengan relasi barang
         $query = Peminjaman::with('barang');
 
-        // 🔍 Fitur pencarian nama peminjam atau barang
+        // 🔎 Filter pencarian (nama peminjam / nama barang)
         if ($request->filled('search')) {
             $keyword = $request->search;
             $query->where('nama_peminjam', 'like', "%{$keyword}%")
-                  ->orWhereHas('barang', function($q) use ($keyword) {
-                      $q->where('nama_barang', 'like', "%{$keyword}%");
-                  });
+                ->orWhereHas('barang', function ($q) use ($keyword) {
+                    $q->where('nama_barang', 'like', "%{$keyword}%");
+                });
         }
 
-        // 🔽 Fitur urutkan berdasarkan terbaru / terlama
-        $sortOrder = $request->get('sort', 'desc'); // default = terbaru
+        // 🔽 Urutan data (terbaru / terlama)
+        $sortOrder = $request->get('sort', 'desc');
         $query->orderBy('created_at', $sortOrder);
 
-        $peminjamans = $query->paginate(10);
-        $peminjamans->appends($request->only('search', 'sort')); // agar pagination tetap bawa parameter
+        // ✅ Tambahkan pagination (10 data per halaman)
+        $peminjamans = $query->paginate(10)->appends($request->only('search', 'sort'));
 
+        // ⬅️ Kirim ke view
         return view('peminjaman.index', compact('peminjamans'));
     }
 
@@ -53,7 +55,7 @@ class PeminjamanController extends Controller
             return redirect()->back()->with('error', 'Stok barang tidak mencukupi.');
         }
 
-        // ✅ Catat peminjaman
+        // ✅ Simpan peminjaman
         Peminjaman::create([
             'barang_id' => $request->barang_id,
             'nama_peminjam' => $request->nama_peminjam,
@@ -62,7 +64,7 @@ class PeminjamanController extends Controller
             'status' => 'dipinjam',
         ]);
 
-        // 📉 Kurangi stok barang sesuai jumlah
+        // 📉 Kurangi stok barang
         $barang->decrement('jumlah', $request->jumlah);
 
         return redirect()->route('peminjaman.index')->with('success', 'Peminjaman berhasil dicatat dan stok barang berkurang.');
@@ -81,7 +83,7 @@ class PeminjamanController extends Controller
 
     public function update(Request $request, Peminjaman $peminjaman)
     {
-        // 🔄 Tombol Kembalikan
+        // 🔄 Tombol “Kembalikan”
         if ($request->has('kembalikan')) {
             if ($peminjaman->status === 'dipinjam') {
                 $peminjaman->update([
@@ -89,11 +91,11 @@ class PeminjamanController extends Controller
                     'status' => 'dikembalikan'
                 ]);
 
-                // 📈 Tambah stok kembali sesuai jumlah pinjaman (jika barang masih ada)
                 if ($peminjaman->barang) {
                     $peminjaman->barang->increment('jumlah', $peminjaman->jumlah);
                 }
             }
+
             return redirect()->route('peminjaman.index')->with('success', 'Barang berhasil dikembalikan dan stok bertambah.');
         }
 
@@ -107,29 +109,20 @@ class PeminjamanController extends Controller
             'status' => 'required|in:dipinjam,dikembalikan',
         ]);
 
-        // 🔄 Hitung selisih jumlah jika barang_id sama
         if ($peminjaman->barang_id == $request->barang_id) {
             $selisih = $request->jumlah - $peminjaman->jumlah;
 
             if ($selisih > 0) {
-                // Kurangi stok tambahan
                 if ($peminjaman->barang && $peminjaman->barang->jumlah < $selisih) {
                     return back()->with('error', 'Stok barang tidak mencukupi untuk update jumlah.');
                 }
-                if ($peminjaman->barang) {
-                    $peminjaman->barang->decrement('jumlah', $selisih);
-                }
+                $peminjaman->barang?->decrement('jumlah', $selisih);
             } elseif ($selisih < 0) {
-                // Kembalikan stok jika jumlah dikurangi
-                if ($peminjaman->barang) {
-                    $peminjaman->barang->increment('jumlah', abs($selisih));
-                }
+                $peminjaman->barang?->increment('jumlah', abs($selisih));
             }
         } else {
-            // Jika barang diganti, kembalikan stok lama
-            if ($peminjaman->barang) {
-                $peminjaman->barang->increment('jumlah', $peminjaman->jumlah);
-            }
+            // Jika barang diganti, stok lama dikembalikan
+            $peminjaman->barang?->increment('jumlah', $peminjaman->jumlah);
 
             $barangBaru = Barang::findOrFail($request->barang_id);
             if ($barangBaru->jumlah < $request->jumlah) {
@@ -152,13 +145,11 @@ class PeminjamanController extends Controller
 
     public function destroy(Peminjaman $peminjaman)
     {
-        // 🔁 Jika masih dipinjam → stok dikembalikan dulu (jika barang masih ada)
         if ($peminjaman->status === 'dipinjam' && $peminjaman->barang) {
             $peminjaman->barang->increment('jumlah', $peminjaman->jumlah);
         }
 
         $peminjaman->delete();
-
         return redirect()->route('peminjaman.index')->with('success', 'Data peminjaman berhasil dihapus.');
     }
 
@@ -169,5 +160,26 @@ class PeminjamanController extends Controller
         $date = now()->format('d-m-Y');
 
         return view('peminjaman.laporan', compact('peminjamans', 'title', 'date'));
+    }
+
+    // 🔎 API ringkasan barang untuk AJAX
+    public function getBarang($id)
+    {
+        $barang = \App\Models\Barang::with(['kategori', 'lokasi'])->find($id);
+
+        if (!$barang) {
+            return response()->json(['message' => 'Barang tidak ditemukan.']);
+        }
+
+        return response()->json([
+            'nama_barang'  => $barang->nama_barang,
+            'kategori'     => $barang->kategori->nama_kategori ?? '-',
+            'jumlah'       => $barang->jumlah,
+            'kondisi'      => $barang->kondisi,
+            'lokasi'       => $barang->lokasi->nama_lokasi ?? '-',
+            'sumber_dana'  => $barang->sumber_dana 
+                ? "<span class='badge bg-secondary px-3 py-2 rounded-pill fw-semibold text-white'>{$barang->sumber_dana}</span>"
+                : "<span class='badge bg-light text-dark px-3 py-2 rounded-pill'>-</span>",
+        ]);
     }
 }

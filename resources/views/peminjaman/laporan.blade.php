@@ -14,6 +14,7 @@
             margin: 0;
             font-size: 18px;
             font-weight: bold;
+            text-transform: uppercase;
         }
 
         p {
@@ -24,7 +25,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
         th, td {
@@ -34,29 +35,42 @@
         }
 
         th {
+            background-color: #f0f0f0; /* ✅ warna abu seperti modul inventaris */
             text-align: center;
             font-weight: bold;
-            background-color: #f9f9f9;
         }
 
         td {
-            text-align: center;
+            vertical-align: top;
         }
 
         td.text-left {
             text-align: left;
         }
 
+        td.text-center {
+            text-align: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h2 {
+            margin-bottom: 4px;
+        }
+
         .empty-row {
             text-align: center;
             font-style: italic;
-            color: #555;
+            color: #666;
         }
     </style>
 </head>
 <body onload="window.print()">
 
-    <div style="text-align: center;">
+    <div class="header">
         <h2>{{ $title }}</h2>
         <p>Tanggal Cetak: {{ $date }}</p>
     </div>
@@ -64,34 +78,36 @@
     <table>
         <thead>
             <tr>
-                <th>No</th>
-                <th>Nama Peminjam</th>
-                <th>Nama Barang</th>
-                <th>Jumlah</th>
-                <th>Tanggal Pinjam</th>
-                <th>Tanggal Kembali</th>
-                <th>Status</th>
+                <th style="width: 30px;">No</th>
+                <th style="width: 120px;">Nama Peminjam</th>
+                <th style="width: 130px;">Nama Barang</th>
+                <th style="width: 100px;">Sumber Dana</th>
+                <th style="width: 60px;">Jumlah</th>
+                <th style="width: 90px;">Tanggal Pinjam</th>
+                <th style="width: 90px;">Tanggal Kembali</th>
+                <th style="width: 80px;">Status</th>
             </tr>
         </thead>
 
         <tbody>
             @forelse ($peminjamans as $index => $peminjaman)
                 <tr>
-                    <td>{{ $index + 1 }}</td>
+                    <td class="text-center">{{ $index + 1 }}</td>
                     <td class="text-left">{{ $peminjaman->nama_peminjam }}</td>
                     <td class="text-left">{{ $peminjaman->barang->nama_barang ?? '-' }}</td>
-                    <td>{{ $peminjaman->jumlah }}</td>
-                    <td>{{ date('d-m-Y', strtotime($peminjaman->tanggal_pinjam)) }}</td>
-                    <td>
+                    <td class="text-left">{{ $peminjaman->barang->sumber_dana ?? '-' }}</td>
+                    <td class="text-center">{{ $peminjaman->jumlah }}</td>
+                    <td class="text-center">{{ date('d-m-Y', strtotime($peminjaman->tanggal_pinjam)) }}</td>
+                    <td class="text-center">
                         {{ $peminjaman->tanggal_kembali 
                             ? date('d-m-Y', strtotime($peminjaman->tanggal_kembali)) 
                             : '-' }}
                     </td>
-                    <td>{{ ucfirst($peminjaman->status) }}</td>
+                    <td class="text-center">{{ ucfirst($peminjaman->status) }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="empty-row">Tidak ada data peminjaman.</td>
+                    <td colspan="8" class="empty-row">Tidak ada data peminjaman.</td>
                 </tr>
             @endforelse
         </tbody>

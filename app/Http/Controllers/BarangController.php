@@ -70,9 +70,11 @@ class BarangController extends Controller implements HasMiddleware
             'satuan'            => 'required|string|max:20',
             'kondisi'           => 'required|in:Baik,Rusak Ringan,Rusak Berat',
             'tanggal_pengadaan' => 'required|date',
+            'sumber_dana'       => 'required|in:Pemerintah,Swadaya,Donatur', // ✅ Tambahan validasi baru
             'gambar'            => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
+        // Simpan gambar bila ada
         if ($request->hasFile('gambar')) {
             $validated['gambar'] = $request->file('gambar')->store(null, 'gambar-barang');
         }
@@ -117,6 +119,7 @@ class BarangController extends Controller implements HasMiddleware
             'satuan'            => 'required|string|max:20',
             'kondisi'           => 'required|in:Baik,Rusak Ringan,Rusak Berat',
             'tanggal_pengadaan' => 'required|date',
+            'sumber_dana'       => 'required|in:Pemerintah,Swadaya,Donatur', // ✅ Validasi tambahan untuk update
             'gambar'            => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
@@ -131,7 +134,7 @@ class BarangController extends Controller implements HasMiddleware
             $validated['gambar'] = $request->file('gambar')->store(null, 'gambar-barang');
         }
 
-        // Update data barang
+        // Update data barang termasuk sumber dana
         $barang->update($validated);
 
         return redirect()

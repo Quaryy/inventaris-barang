@@ -69,6 +69,10 @@ Route::middleware('auth')->group(function () {
 Route::get('/peminjaman/laporan', [PeminjamanController::class, 'laporan'])->name('peminjaman.laporan');
 Route::resource('peminjaman', PeminjamanController::class);
 
+
+Route::get('/peminjaman/barang/{id}', [PeminjamanController::class, 'getBarang']);
+
+
 });
 
 

@@ -73,6 +73,27 @@
     </div>
 </div>
 
+{{-- Tambahan: Pilihan Sumber Dana --}}
+<div class="row mb-3">
+    <div class="col-md-6">
+        @php
+            $sumberDana = [
+                ['sumber' => 'Pemerintah'],
+                ['sumber' => 'Swadaya'],
+                ['sumber' => 'Donatur'],
+            ];
+        @endphp
+        <x-form-select 
+            label="Sumber Dana" 
+            name="sumber_dana" 
+            :value="$barang->sumber_dana" 
+            :option-data="$sumberDana" 
+            option-label="sumber" 
+            option-value="sumber" 
+        />
+    </div>
+</div>
+
 <div class="mb-3">
     <x-form-input label="Gambar Barang" name="gambar" type="file" />
 </div>

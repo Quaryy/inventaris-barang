@@ -2,8 +2,8 @@
 <div class="d-flex justify-content-end mb-3">
     <form action="{{ route('barang.index') }}" method="GET" class="d-flex align-items-center gap-2">
         <select name="sort" id="sort" class="form-select form-select-sm w-auto shadow-sm border-0 bg-light fw-semibold" onchange="this.form.submit()">
-            <option value="desc" {{ request('sort') == 'desc' ? 'selected' : '' }}>🔽 Barang Terbaru</option>
-            <option value="asc" {{ request('sort') == 'asc' ? 'selected' : '' }}>🔼 Barang Lama</option>
+            <option value="desc" {{ request('sort') == 'desc' ? 'selected' : '' }}> Barang Terbaru</option>
+            <option value="asc" {{ request('sort') == 'asc' ? 'selected' : '' }}> Barang Lama</option>
         </select>
     </form>
 </div>
@@ -18,6 +18,7 @@
             <th>Lokasi</th>
             <th>Jumlah</th>
             <th>Kondisi</th>
+            <th>Sumber Dana</th> {{-- ✅ Kolom baru --}}
             <th>&nbsp;</th>
         </tr>
     </x-slot>
@@ -44,6 +45,16 @@
                     {{ $barang->kondisi }}
                 </span>
             </td>
+            <td>
+                {{-- ✅ Menampilkan sumber dana --}}
+                @if ($barang->sumber_dana)
+                    <span class="badge bg-secondary">
+                        {{ $barang->sumber_dana }}
+                    </span>
+                @else
+                    <span class="text-muted">-</span>
+                @endif
+            </td>
             <td class="text-end">
                 @can('manage barang')
                     <x-tombol-aksi href="{{ route('barang.show', $barang->id) }}" type="show" />
@@ -59,7 +70,7 @@
         </tr>
     @empty
         <tr>
-            <td colspan="8" class="text-center">
+            <td colspan="9" class="text-center">
                 <div class="alert alert-danger mb-0">
                     Data barang belum tersedia.
                 </div>
@@ -67,8 +78,3 @@
         </tr>
     @endforelse
 </x-table-list>
-
-<!-- Pagination -->
-<div class="mt-3">
-    {{ $barangs->links() }}
-</div>

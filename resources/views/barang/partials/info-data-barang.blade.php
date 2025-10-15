@@ -32,6 +32,16 @@
             </td>
         </tr>
         <tr>
+            <th>Sumber Dana</th>
+            <td>
+                @if($barang->sumber_dana)
+                    {{ $barang->sumber_dana }}
+                @else
+                    <span class="text-muted">Tidak ada data</span>
+                @endif
+            </td>
+        </tr>
+        <tr>
             <th>Tanggal Pengadaan</th>
             <td>{{ \Carbon\Carbon::parse($barang->tanggal_pengadaan)->translatedFormat('d F Y') }}</td>
         </tr>
