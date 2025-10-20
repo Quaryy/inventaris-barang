@@ -10,10 +10,8 @@ class PeminjamanController extends Controller
 {
     public function index(Request $request)
     {
-        // 🔍 Query dasar dengan relasi barang
         $query = Peminjaman::with('barang');
 
-        // 🔎 Filter pencarian (nama peminjam / nama barang)
         if ($request->filled('search')) {
             $keyword = $request->search;
             $query->where('nama_peminjam', 'like', "%{$keyword}%")
@@ -22,14 +20,11 @@ class PeminjamanController extends Controller
                 });
         }
 
-        // 🔽 Urutan data (terbaru / terlama)
         $sortOrder = $request->get('sort', 'desc');
         $query->orderBy('created_at', $sortOrder);
 
-        // ✅ Tambahkan pagination (10 data per halaman)
         $peminjamans = $query->paginate(10)->appends($request->only('search', 'sort'));
 
-        // ⬅️ Kirim ke view
         return view('peminjaman.index', compact('peminjamans'));
     }
 
@@ -50,9 +45,11 @@ class PeminjamanController extends Controller
 
         $barang = Barang::findOrFail($request->barang_id);
 
-        // ❌ Cek stok cukup
-        if ($barang->jumlah < $request->jumlah) {
-            return redirect()->back()->with('error', 'Stok barang tidak mencukupi.');
+        // ✅ Validasi stok cukup
+        if ($request->jumlah > $barang->jumlah) {
+            return back()
+                ->withErrors(['jumlah' => 'Jumlah barang yang dipinjam melebihi stok yang tersedia (stok: ' . $barang->jumlah . ').'])
+                ->withInput();
         }
 
         // ✅ Simpan peminjaman
@@ -64,7 +61,7 @@ class PeminjamanController extends Controller
             'status' => 'dipinjam',
         ]);
 
-        // 📉 Kurangi stok barang
+        // 📉 Kurangi stok
         $barang->decrement('jumlah', $request->jumlah);
 
         return redirect()->route('peminjaman.index')->with('success', 'Peminjaman berhasil dicatat dan stok barang berkurang.');
@@ -99,7 +96,7 @@ class PeminjamanController extends Controller
             return redirect()->route('peminjaman.index')->with('success', 'Barang berhasil dikembalikan dan stok bertambah.');
         }
 
-        // 📝 Update data biasa
+        // 📝 Validasi update
         $request->validate([
             'barang_id' => 'required|exists:barangs,id',
             'nama_peminjam' => 'required|string|max:255',
@@ -109,36 +106,41 @@ class PeminjamanController extends Controller
             'status' => 'required|in:dipinjam,dikembalikan',
         ]);
 
-        if ($peminjaman->barang_id == $request->barang_id) {
-            $selisih = $request->jumlah - $peminjaman->jumlah;
+        $barangLama = $peminjaman->barang;
+        $barangBaru = Barang::findOrFail($request->barang_id);
 
-            if ($selisih > 0) {
-                if ($peminjaman->barang && $peminjaman->barang->jumlah < $selisih) {
-                    return back()->with('error', 'Stok barang tidak mencukupi untuk update jumlah.');
-                }
-                $peminjaman->barang?->decrement('jumlah', $selisih);
-            } elseif ($selisih < 0) {
-                $peminjaman->barang?->increment('jumlah', abs($selisih));
-            }
+        // Hitung stok tersedia untuk update (stok baru + jumlah yang sebelumnya dipinjam)
+        $stokTersedia = $barangBaru->jumlah;
+        if ($barangLama && $barangLama->id === $barangBaru->id) {
+            $stokTersedia += $peminjaman->jumlah;
+        }
+
+        // ✅ Validasi stok cukup saat update
+        if ($request->jumlah > $stokTersedia) {
+            return back()
+                ->withErrors(['jumlah' => 'Jumlah barang yang dipinjam melebihi stok yang tersedia (stok: ' . $stokTersedia . ').'])
+                ->withInput();
+        }
+
+        // 🔁 Update stok
+        if ($barangLama && $barangLama->id === $barangBaru->id) {
+            $barangBaru->update(['jumlah' => $stokTersedia - $request->jumlah]);
         } else {
-            // Jika barang diganti, stok lama dikembalikan
-            $peminjaman->barang?->increment('jumlah', $peminjaman->jumlah);
-
-            $barangBaru = Barang::findOrFail($request->barang_id);
-            if ($barangBaru->jumlah < $request->jumlah) {
-                return back()->with('error', 'Stok barang baru tidak mencukupi.');
+            if ($barangLama) {
+                $barangLama->increment('jumlah', $peminjaman->jumlah);
             }
             $barangBaru->decrement('jumlah', $request->jumlah);
         }
 
-        $peminjaman->update($request->only([
-            'barang_id',
-            'nama_peminjam',
-            'jumlah',
-            'tanggal_pinjam',
-            'tanggal_kembali',
-            'status'
-        ]));
+        // 🔄 Update data peminjaman
+        $peminjaman->update([
+            'barang_id' => $request->barang_id,
+            'nama_peminjam' => $request->nama_peminjam,
+            'jumlah' => $request->jumlah,
+            'tanggal_pinjam' => $request->tanggal_pinjam,
+            'tanggal_kembali' => $request->tanggal_kembali,
+            'status' => $request->status,
+        ]);
 
         return redirect()->route('peminjaman.index')->with('success', 'Data peminjaman berhasil diperbarui.');
     }

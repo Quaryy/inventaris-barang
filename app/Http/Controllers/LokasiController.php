@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lokasi;
+use App\Models\Barang;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -63,11 +64,16 @@ class LokasiController extends Controller implements HasMiddleware
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified resource (detail lokasi + daftar barang di lokasi tersebut).
      */
     public function show(Lokasi $lokasi)
     {
-        return view('lokasi.show', compact('lokasi'));
+        // Ambil semua barang yang ada di lokasi ini
+        $barangs = Barang::where('lokasi_id', $lokasi->id)
+            ->with('kategori')
+            ->get();
+
+        return view('lokasi.show', compact('lokasi', 'barangs'));
     }
 
     /**

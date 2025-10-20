@@ -73,6 +73,14 @@ Route::resource('peminjaman', PeminjamanController::class);
 Route::get('/peminjaman/barang/{id}', [PeminjamanController::class, 'getBarang']);
 
 
+
+
+
+
+// lokasi
+
+Route::get('/lokasi/{id}', [App\Http\Controllers\LokasiController::class, 'show'])->name('lokasi.show');
+
 });
 
 

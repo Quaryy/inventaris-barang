@@ -3,9 +3,7 @@
         <tr>
             <th>#</th>
             <th>Nama Lokasi</th>
-            @can('manage lokasi')
-                <th>&nbsp;</th>
-            @endcan
+            <th>Aksi</th>
         </tr>
     </x-slot>
 
@@ -13,8 +11,12 @@
         <tr>
             <td>{{ $lokasis->firstItem() + $index }}</td>
             <td>{{ $lokasi->nama_lokasi }}</td>
-            @can('manage lokasi')
-                <td>
+            <td class="d-flex gap-1">
+                <a href="{{ route('lokasi.show', $lokasi->id) }}" class="btn btn-info btn-sm">
+                    <i class="bi bi-eye"></i> Detail
+                </a>
+
+                @can('manage lokasi')
                     <x-tombol-aksi 
                         :href="route('lokasi.edit', $lokasi->id)" 
                         type="edit" 
@@ -23,8 +25,8 @@
                         :href="route('lokasi.destroy', $lokasi->id)" 
                         type="delete" 
                     />
-                </td>
-            @endcan
+                @endcan
+            </td>
         </tr>
     @empty
         <tr>
